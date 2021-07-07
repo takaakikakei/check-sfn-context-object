@@ -1,16 +1,31 @@
 stateMachines:
-  countfunc:
-    name: TestSLS-${self:provider.stage}
+  testfunc:
+    name: check-sfn-context-object-${self:provider.stage}
     definition:
-      StartAt: Hello
+      StartAt: Test
       States:
-        Hello:
+        Test:
           Type: Task
           InputPath: "$"
           Resource:
-            Fn::GetAtt: [hello, Arn]
-          ResultPath: "$"
+            Fn::GetAtt: [test, Arn]
+          Catch:
+          - ErrorEquals:
+            - States.ALL
+            Next: AlertSlack
           Next: Done
+        AlertSlack:
+          Type: Task
+          Resource:
+            Fn::GetAtt: [alert_slack, Arn]
+          Parameters:
+            Execution.$: $$.Execution
+            State.$: $$.State
+            StateMachine.$: $$.StateMachine
+            param.$: $
+          Next: FailState
+        FailState:
+          Type: Fail
         Done:
           Type: Pass
           End: true

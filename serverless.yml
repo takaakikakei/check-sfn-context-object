@@ -1,4 +1,4 @@
-service: test-sls
+service: check-sfn-context-object
 
 frameworkVersion: '2'
 
@@ -8,20 +8,32 @@ provider:
   stage: ${opt:stage, self:custom.defaultStage}
   region: ${opt:region, self:custom.defaultRegion}
   lambdaHashingVersion: 20201221
+  iam:
+    role:
+      statements:
+        - Effect: 'Allow'
+          Action:
+            - 'secretsmanager:GetSecretValue'
+          Resource:
+              - '*'
 
 custom:
   pythonRequirements:
     usePipenv: true
   defaultStage: dev
   defaultRegion: ap-northeast-1
-  #environment:
-    #dev:
-    #prod:
-
+  environment:
+    dev:
+      SECRET_NAME: dev/slack
+    prod:
+      SECRET_NAME: prod/slack
 functions:
-  hello:
-    handler: handler.hello
-    #environment: ${self:custom.environment.${self:provider.stage}}
+  test:
+    handler: handler.test
+    environment: ${self:custom.environment.${self:provider.stage}}
+  alert_slack:
+    handler: slack.alert_slack
+    environment: ${self:custom.environment.${self:provider.stage}}
 
 stepFunctions: ${file(includes/state-machines.yml)}
 
