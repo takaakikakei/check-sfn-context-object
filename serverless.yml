@@ -111,3 +111,7 @@ functions:
 #     NewOutput:
 #       Description: "Description for the output"
 #       Value: "Some output value"
+
+plugins:
+  - serverless-step-functions
+  - serverless-python-requirements
